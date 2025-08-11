@@ -36,6 +36,7 @@ provider:
     MYSQL_PASSWORD: ${env:MYSQL_PASSWORD}
     MYSQL_DB: ${env:MYSQL_DB}
     DDB_CACHE_TABLE: ${env:DDB_CACHE_TABLE}
+    JWT_SECRET: ${env:JWT_SECRET}
 
   iam:
     role:
@@ -78,6 +79,22 @@ functions:
       - http:
           method: POST
           path: /almacenar
+          cors: true
+
+  signup:
+    handler: src/handlers/handler.signup
+    events:
+      - http:
+          method: POST
+          path: /auth/signup
+          cors: true
+
+  login:
+    handler: src/handlers/handler.login
+    events:
+      - http:
+          method: POST
+          path: /auth/login
           cors: true
 
 resources:

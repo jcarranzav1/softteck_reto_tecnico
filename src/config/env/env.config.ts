@@ -31,7 +31,7 @@ export const envSchema = z.object({
 
 
     DDB_CACHE_TABLE: z.string().trim().min(1, { message: "DDB_CACHE_TABLE is required" }),
-
+    JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
 });
 
 

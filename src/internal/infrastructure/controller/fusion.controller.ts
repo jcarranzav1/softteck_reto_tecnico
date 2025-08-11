@@ -3,9 +3,10 @@ import type { NextFunction, Request, Response } from "express";
 
 import { TYPES } from "@config/inversify/types";
 import type { IFusionService } from "@application/interfaces/fusion.interface";
-import type { ResponseDto } from "@shared/interfaces/response/response.dto";
+import type { ResponseDto, ResponseListDto } from "@shared/interfaces/response/response.dto";
 import type { FusionLogEntity } from "@domain/entity/fusion.entity";
 import { FusionQueryDto } from '@application/dto/fusion/fusion_query.dto'
+import { SuccessMessages } from '@shared/const/success_messages'
 
 
 @injectable()
@@ -19,9 +20,13 @@ export class FusionController {
     async fuseByPerson(req: Request & { query: FusionQueryDto }, res: Response, next: NextFunction) {
         try {
             const peopleId = req.query.people;
-            const entity = await this.fusionService.getOrCreate(peopleId);
-            const body: ResponseDto<FusionLogEntity> = { message: "ok", data: entity };
-            res.status(200).json(body);
+            const fusion = await this.fusionService.getOrCreate(peopleId);
+
+            const payload: ResponseDto<FusionLogEntity> = {
+                message: SuccessMessages.fusion,
+                data: fusion,
+            };
+            res.status(200).json(payload);
         } catch (err) {
             next(err);
         }
@@ -30,7 +35,12 @@ export class FusionController {
     async history(req: Request, res: Response, next: NextFunction) {
         try {
             const result = await this.fusionService.getHistory(req.query as any);
-            res.status(200).json(result);
+
+            const payload: ResponseListDto<FusionLogEntity[]> = {
+                message: SuccessMessages.history,
+                ...result
+            };
+            res.status(200).json(payload);
         } catch (err) {
             next(err);
         }

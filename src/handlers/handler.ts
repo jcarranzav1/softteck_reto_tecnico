@@ -11,3 +11,5 @@ export const health = wrapped;
 export const fusionados = wrapped;
 export const historial = wrapped;
 export const almacenar = wrapped;
+export const signup = wrapped;
+export const login = wrapped;

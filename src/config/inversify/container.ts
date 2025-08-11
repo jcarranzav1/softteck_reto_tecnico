@@ -23,6 +23,13 @@ import { CreateGTA5ProfileUseCase } from '@application/use_cases/gta5_profile/cr
 import { GTA5ProfileService } from '@application/service/gta5_profile.service'
 import { IGTA5ProfileService } from '@application/interfaces/gta5_profile.interface'
 import { GTA5ProfileController } from '@infrastructure/controller/gta5_profile.controller'
+import { UserRepository } from '@infrastructure/adapters/repository/user.repository'
+import { IUserRepository } from '@domain/ports/repository/user.port'
+import { SignUpUseCase } from '@application/use_cases/auth/sign_up.use_case'
+import { LoginUseCase } from '@application/use_cases/auth/login.use_case'
+import { AuthService } from '@application/service/auth.service'
+import { IAuthService } from '@application/interfaces/auth.interface'
+import { AuthController } from '@infrastructure/controller/auth.controller'
 
 
 const container = new Container({ defaultScope: "Singleton" })
@@ -32,17 +39,22 @@ container.bind<ISwApi>(TYPES.ISwApi).to(SwApi)
 container.bind<ICountriesApi>(TYPES.ICountriesApi).to(CountriesApi)
 container.bind<IFusionRepository>(TYPES.IFusionRepository).to(FusionRepository)
 container.bind<IGTA5ProfileRepository>(TYPES.IGTA5ProfileRepository).to(GTA5ProfileRepository)
+container.bind<IUserRepository>(TYPES.IUserRepository).to(UserRepository)
 container.bind<IFusionCache>(TYPES.IFusionCache).to(FusionCacheDynamo)
 
 container.bind(GetOrCreateFusionUseCase).toSelf();
 container.bind(GetHistoryUseCase).toSelf();
 container.bind(CreateGTA5ProfileUseCase).toSelf();
+container.bind(SignUpUseCase).toSelf();
+container.bind(LoginUseCase).toSelf();
 
 container.bind<IFusionService>(TYPES.IFusionService).to(FusionService)
 container.bind<IGTA5ProfileService>(TYPES.IGTA5ProfileService).to(GTA5ProfileService)
+container.bind<IAuthService>(TYPES.IAuthService).to(AuthService)
 
 container.bind<FusionController>(TYPES.FusionController).to(FusionController)
 container.bind<GTA5ProfileController>(TYPES.GTA5ProfileController).to(GTA5ProfileController)
+container.bind<AuthController>(TYPES.AuthController).to(AuthController)
 container.bind<HealthController>(TYPES.HealthController).to(HealthController)
 
 export { container };
