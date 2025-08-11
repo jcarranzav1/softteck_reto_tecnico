@@ -1,0 +1,229 @@
+service: soft-reto-tecnico
+
+frameworkVersion: "4"
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+useDotenv: true
+
+build:
+  esbuild:
+    bundle: true
+    minify: false
+    keepNames: true
+    sourcemap: true
+    target: node22
+    platform: node
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  architecture: arm64
+  stage: dev
+  region: us-east-1
+  logs:
+    restApi: true
+  apiName: ${self:service}-${sls:stage}-rest
+
+
+  environment:
+    MYSQL_HOST:
+      Fn::GetAtt: [ AppDB, Endpoint.Address ]
+    MYSQL_PORT: ${env:MYSQL_PORT, '3306'}
+    MYSQL_USER: ${env:MYSQL_USER}
+    MYSQL_PASSWORD: ${env:MYSQL_PASSWORD}
+    MYSQL_DB: ${env:MYSQL_DB}
+    DDB_CACHE_TABLE: !Ref FusionCacheTable
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+          Resource: !GetAtt FusionCacheTable.Arn
+
+functions:
+  health:
+    handler: src/handlers/handler.health
+    events:
+      - http:
+          method: GET
+          path: /health
+          cors: true
+
+  fusionados:
+    handler: src/handlers/handler.fusionados
+    events:
+      - http:
+          method: GET
+          path: /fusionados
+          cors: true
+
+  historial:
+    handler: src/handlers/handler.historial
+    events:
+      - http:
+          method: GET
+          path: /historial
+          cors: true
+
+resources:
+  Resources:
+
+    AppVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsHostnames: true
+        EnableDnsSupport: true
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-vpc
+
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-igw
+
+    VPCGatewayAttachment:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId: !Ref AppVPC
+        InternetGatewayId: !Ref InternetGateway
+
+    PublicSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref AppVPC
+        CidrBlock: 10.0.1.0/24
+        AvailabilityZone: us-east-1a
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-public-a
+
+    PublicSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref AppVPC
+        CidrBlock: 10.0.2.0/24
+        AvailabilityZone: us-east-1b
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-public-b
+
+    PublicRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !Ref AppVPC
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-public-rt
+
+    PublicRoute:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+
+    PublicSubnetARouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        SubnetId: !Ref PublicSubnetA
+
+    PublicSubnetBRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: !Ref PublicRouteTable
+        SubnetId: !Ref PublicSubnetB
+
+    RdsSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow MySQL from anywhere
+        VpcId: !Ref AppVPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 3306
+            ToPort: 3306
+            CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+          - IpProtocol: -1
+            CidrIp: 0.0.0.0/0
+        Tags:
+          - Key: Name
+            Value: ${self:service}-${sls:stage}-rds-sg
+
+    RdsSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: Subnets for RDS
+        SubnetIds:
+          - !Ref PublicSubnetA
+          - !Ref PublicSubnetB
+        DBSubnetGroupName: ${self:service}-${sls:stage}-dbsubnet
+
+    AppDB:
+      Type: AWS::RDS::DBInstance
+      DeletionPolicy: Delete
+      UpdateReplacePolicy: Delete
+      Properties:
+        DBInstanceIdentifier: "${self:service}-${sls:stage}-mysql"
+        Engine: mysql
+        DBInstanceClass: db.t3.micro
+        AllocatedStorage: "20"
+        StorageType: gp3
+        PubliclyAccessible: true
+        MultiAZ: false
+        BackupRetentionPeriod: 0
+        DeleteAutomatedBackups: true
+        DeletionProtection: false
+        VPCSecurityGroups:
+          - !GetAtt RdsSecurityGroup.GroupId
+        DBSubnetGroupName: !Ref RdsSubnetGroup
+        MasterUsername: ${env:MYSQL_USER}
+        MasterUserPassword: ${env:MYSQL_PASSWORD}
+        DBName: ${env:MYSQL_DB}
+        Port: 3306
+        AutoMinorVersionUpgrade: true
+        StorageEncrypted: false
+        MonitoringInterval: 0
+        CopyTagsToSnapshot: false
+
+  Outputs:
+    RdsEndpointAddress:
+      Description: RDS endpoint hostname
+      Value: !GetAtt AppDB.Endpoint.Address
+
+  FusionCacheTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:service}-${sls:stage}-fusion-cache
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+
+custom:
+  serverless-offline:
+    httpPort: 4000
+    lambdaPort: 4002
+    host: 0.0.0.0
+    noPrependStageInUrl: true
