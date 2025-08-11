@@ -9,7 +9,7 @@ export class CountriesApi implements ICountriesApi {
     }
 
     async getCountry<T>(country: string): Promise<T> {
-        const name = encodeURIComponent(country.trim()); // <- maneja espacios y acentos
+        const name = encodeURIComponent(country.trim());
         const url = `https://restcountries.com/v3.1/name/${name}`;
         try {
             const response = await axios.get<T>(url, {

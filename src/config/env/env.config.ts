@@ -27,9 +27,10 @@ export const envSchema = z.object({
 
     MYSQL_DB: z
         .string()
-        .trim()
-        .min(1, { message: "MYSQL_DB is required" }),
+        .trim().min(1, { message: "MYSQL_DB is required" }),
 
+
+    DDB_CACHE_TABLE: z.string().trim().min(1, { message: "DDB_CACHE_TABLE is required" }),
 
 });
 

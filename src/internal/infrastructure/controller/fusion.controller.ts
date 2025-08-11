@@ -1,4 +1,3 @@
-// src/infrastructure/controller/fusion.controller.ts
 import { inject, injectable } from "inversify";
 import type { NextFunction, Request, Response } from "express";
 
@@ -19,7 +18,7 @@ export class FusionController {
 
     async fuseByPerson(req: Request & { query: FusionQueryDto }, res: Response, next: NextFunction) {
         try {
-            const peopleId = (req.query as any).people as string;
+            const peopleId = req.query.people;
             const entity = await this.fusionService.getOrCreate(peopleId);
             const body: ResponseDto<FusionLogEntity> = { message: "ok", data: entity };
             res.status(200).json(body);

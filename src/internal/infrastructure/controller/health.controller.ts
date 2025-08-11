@@ -1,4 +1,3 @@
-// src/infrastructure/controller/health.controller.ts
 import { injectable } from "inversify";
 import type { Request, Response } from "express";
 import { Messages } from "@shared/const/messages";

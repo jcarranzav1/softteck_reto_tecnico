@@ -6,19 +6,27 @@ import { ISwApi } from '@domain/ports/apis/swapi.port'
 import { countryForPlanetName } from '@shared/const/planet_country_map'
 import { Conflict } from 'http-errors'
 import { FusionLogEntity, RestCountryEntity, SwPersonEntity, SwPlanetEntity } from '@domain/entity/fusion.entity'
+import { IFusionCache } from '@domain/ports/cache/fusion_cache.port'
 
 @injectable()
 export class GetOrCreateFusionUseCase {
     constructor(
         @inject(TYPES.IFusionRepository) private readonly fusionRepository: IFusionRepository,
+        @inject(TYPES.IFusionCache) private readonly fusionCache: IFusionCache,
         @inject(TYPES.ISwApi) private readonly swApi: ISwApi,
         @inject(TYPES.ICountriesApi) private readonly countriesApi: ICountriesApi,
     ) {
     }
 
     async execute(personId: string): Promise<FusionLogEntity> {
+        const cached = await this.fusionCache.get(personId);
+        if (cached) return cached;
+
         const recordExists = await this.fusionRepository.findByPersonId(personId)
-        if (recordExists) return recordExists
+        if (recordExists) {
+            await this.fusionCache.set(personId, recordExists)
+            return recordExists
+        }
 
         const swPerson = await this.swApi.getCharacter<SwPersonEntity>(personId)
         const swPlanet = await this.swApi.getPlanet<SwPlanetEntity>(swPerson.homeworld)
@@ -36,6 +44,12 @@ export class GetOrCreateFusionUseCase {
         })
 
         await this.fusionRepository.create(newFusionLog)
-        return await this.fusionRepository.findByPersonId(personId)
+
+        const [fusionLog] = await Promise.all([
+            this.fusionRepository.findByPersonId(personId),
+            this.fusionCache.set(personId, newFusionLog)
+        ])
+
+        return fusionLog
     }
 }

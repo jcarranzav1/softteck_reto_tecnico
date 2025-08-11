@@ -10,3 +10,4 @@ export const wrapped = serverless(app, {
 export const health = wrapped;
 export const fusionados = wrapped;
 export const historial = wrapped;
+export const almacenar = wrapped;

@@ -35,7 +35,7 @@ provider:
     MYSQL_USER: ${env:MYSQL_USER}
     MYSQL_PASSWORD: ${env:MYSQL_PASSWORD}
     MYSQL_DB: ${env:MYSQL_DB}
-    DDB_CACHE_TABLE: !Ref FusionCacheTable
+    DDB_CACHE_TABLE: ${env:DDB_CACHE_TABLE}
 
   iam:
     role:
@@ -70,6 +70,14 @@ functions:
       - http:
           method: GET
           path: /historial
+          cors: true
+
+  almacenar:
+    handler: src/handlers/handler.almacenar
+    events:
+      - http:
+          method: POST
+          path: /almacenar
           cors: true
 
 resources:
@@ -200,25 +208,30 @@ resources:
         MonitoringInterval: 0
         CopyTagsToSnapshot: false
 
+    FusionCacheTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${env:DDB_CACHE_TABLE}
+        BillingMode: PROVISIONED
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        AttributeDefinitions:
+          - AttributeName: key
+            AttributeType: S
+        KeySchema:
+          - AttributeName: key
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+
   Outputs:
     RdsEndpointAddress:
       Description: RDS endpoint hostname
       Value: !GetAtt AppDB.Endpoint.Address
 
-  FusionCacheTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: ${self:service}-${sls:stage}-fusion-cache
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: pk
-          AttributeType: S
-      KeySchema:
-        - AttributeName: pk
-          KeyType: HASH
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
+
 
 
 custom:

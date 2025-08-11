@@ -2,9 +2,9 @@ import { char, datetime, index, json, mysqlSchema, uniqueIndex, varchar } from "
 import { RestCountryEntity, SwPersonEntity, SwPlanetEntity } from '@domain/entity/fusion.entity'
 import { sql } from "drizzle-orm";
 
-export const fusionSqlSchema = mysqlSchema("reto_tecnico");
+export const TechnicalChallengeSqlSchema = mysqlSchema("reto_tecnico");
 
-export const FusionLogSchema = fusionSqlSchema.table(
+export const FusionLogSchema = TechnicalChallengeSqlSchema.table(
     "fusion_logs",
     {
         id: char("id", { length: 36 }).primaryKey(),
@@ -14,8 +14,8 @@ export const FusionLogSchema = fusionSqlSchema.table(
         country: json("country").$type<RestCountryEntity>().notNull(),
         created_at: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
         updated_at: datetime("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
-        created_by: varchar("created_by", { length: 255 }).notNull().default("system"),
-        updated_by: varchar("updated_by", { length: 255 }).notNull().default("system"),
+        created_by: varchar("created_by", { length: 255 }),
+        updated_by: varchar("updated_by", { length: 255 }),
     },
     (fusion) => ({
         idxCreatedAt: index("idx_fusion_created_at").on(fusion.created_at),
