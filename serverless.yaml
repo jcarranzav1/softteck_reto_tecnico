@@ -5,6 +5,7 @@ frameworkVersion: "4"
 plugins:
   - serverless-dotenv-plugin
   - serverless-offline
+  - serverless-s3-sync
 
 useDotenv: true
 
@@ -16,6 +17,7 @@ build:
     sourcemap: true
     target: node22
     platform: node
+
 
 provider:
   name: aws
@@ -243,17 +245,79 @@ resources:
           AttributeName: ttl
           Enabled: true
 
+    SwaggerStaticBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.docsBucketName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          IgnorePublicAcls: false
+          BlockPublicPolicy: false
+          RestrictPublicBuckets: false
+
+    SwaggerStaticBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: ${self:custom.docsBucketName}
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action: s3:GetObject
+              Resource: arn:aws:s3:::${self:custom.docsBucketName}/*
+
+    SwaggerCloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Comment: "Distribución CloudFront para Swagger UI"
+          Enabled: true
+          PriceClass: PriceClass_All
+          DefaultRootObject: swagger-ui/index.html
+          Origins:
+            - Id: SwaggerS3Origin
+              DomainName: ${self:custom.docsBucketName}.s3.us-east-1.amazonaws.com
+              OriginPath: ""
+              S3OriginConfig: { }
+          DefaultCacheBehavior:
+            TargetOriginId: SwaggerS3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [ GET, HEAD ]
+            CachedMethods: [ GET, HEAD ]
+            Compress: true
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: none
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: true
+          HttpVersion: http2
+          CustomErrorResponses:
+            - ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /swagger-ui/index.html
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /swagger-ui/index.html
+
   Outputs:
+    SwaggerCloudFrontUrl:
+      Description: URL de CloudFront para Swagger UI
+      Value: !Sub 'https://${SwaggerCloudFrontDistribution.DomainName}'
     RdsEndpointAddress:
       Description: RDS endpoint hostname
       Value: !GetAtt AppDB.Endpoint.Address
-
-
-
 
 custom:
   serverless-offline:
     httpPort: 4000
     lambdaPort: 4002
-    host: 0.0.0.0
     noPrependStageInUrl: true
+
+  docsBucketName: ${self:service}-${sls:stage}-swagger-static
+  s3Sync:
+    - bucketName: ${self:custom.docsBucketName}
+      localDir: .swagger-static
+      deleteRemoved: true

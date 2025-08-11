@@ -5,16 +5,18 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "tsc & pnpm run build:swagger",
     "offline": "serverless offline",
     "offline:watch": "serverless offline --reloadHandler",
-    "deploy": "pnpm run build &&  serverless deploy"
+    "deploy": "pnpm run build &&  serverless deploy",
+    "build:swagger": "rm -f .swagger-static/*.swagger.yaml && cp *.swagger.yaml .swagger-static/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.4.1",
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.23",
     "@types/http-errors": "^2.0.5",
     "@types/jsonwebtoken": "^9.0.10",
@@ -22,6 +24,7 @@
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-esbuild": "^1.55.1",
     "serverless-offline": "^14.4.0",
+    "serverless-s3-sync": "^3.4.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
@@ -30,17 +33,18 @@
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.3",
     "express": "^4.19.2",
     "http-errors": "^2.0.0",
     "inversify": "^6.0.1",
-    "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.2",
     "reflect-metadata": "^0.2.2",
     "serverless-http": "^3.2.0",
     "uuid": "^11.1.0",
+    "yaml": "^2.8.1",
     "zod": "^4.0.10"
   }
 }
