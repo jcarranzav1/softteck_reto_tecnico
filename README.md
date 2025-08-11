@@ -103,6 +103,13 @@ pnpm install
 pnpm run deploy
 ```
 
+⚠️ **Importante:** Para usar **Serverless Framework** debes tener configuradas tus credenciales de AWS CLI.  
+Si no las tienes configuradas, ejecuta:
+
+```bash
+aws configure
+```
+
 ## 🗂️ Arquitectura
 
 - **Hexagonal Architecture + Domain Driven Design (DDD)**
