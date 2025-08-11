@@ -125,7 +125,7 @@ pnpm run deploy
 ## 📜 Swagger Documentation
 
 Para ver la documentación de la API en Swagger, debes usar la **URI de CloudFront** que se genera en el deploy.  
-Esta URI se encuentra configurada como output en el `serverless.yml`.  
+Esta URI se encuentra configurada como output en el `serverless.yaml`.  
 Por ejemplo, actualmente hay una versión ya subida y accesible en:  
 [https://dd1a3dy93gbal.cloudfront.net/?url=softteck](https://dd1a3dy93gbal.cloudfront.net/?url=softteck)
 
