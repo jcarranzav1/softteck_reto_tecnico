@@ -7,6 +7,7 @@ import type { ResponseDto, ResponseListDto } from "@shared/interfaces/response/r
 import type { FusionLogEntity } from "@domain/entity/fusion.entity";
 import { FusionQueryDto } from '@application/dto/fusion/fusion_query.dto'
 import { SuccessMessages } from '@shared/const/success_messages'
+import { TokenPayloadDto } from '@application/dto/auth/token.payload.dto'
 
 
 @injectable()
@@ -17,10 +18,14 @@ export class FusionController {
     ) {
     }
 
-    async fuseByPerson(req: Request & { query: FusionQueryDto }, res: Response, next: NextFunction) {
+    async fuseByPerson(req: Request & {
+        query: FusionQueryDto,
+        user: TokenPayloadDto
+    }, res: Response, next: NextFunction) {
         try {
             const peopleId = req.query.people;
-            const fusion = await this.fusionService.getOrCreate(peopleId);
+            const { email } = req.user
+            const fusion = await this.fusionService.getOrCreate(email, peopleId);
 
             const payload: ResponseDto<FusionLogEntity> = {
                 message: SuccessMessages.fusion,

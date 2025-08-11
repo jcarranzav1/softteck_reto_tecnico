@@ -7,6 +7,7 @@ import { CreateGTA5ProfileDto } from '@application/dto/gta5_profile/create_gta5_
 import type { ResponseDto } from '@shared/interfaces/response/response.dto'
 import { SuccessMessages } from '@shared/const/success_messages'
 import { GTA5ProfileEntity } from '@domain/entity/gta5_profile.entity'
+import { TokenPayloadDto } from '@application/dto/auth/token.payload.dto'
 
 
 @injectable()
@@ -18,9 +19,13 @@ export class GTA5ProfileController {
     }
 
 
-    async create(req: Request<unknown, unknown, CreateGTA5ProfileDto>, res: Response, next: NextFunction) {
+    async create(req: Request<unknown, unknown, CreateGTA5ProfileDto> & {
+        user: TokenPayloadDto
+    }, res: Response, next: NextFunction) {
         try {
-            const result = await this.gta5ProfileService.create(req.body);
+            const { email } = req.user
+
+            const result = await this.gta5ProfileService.create(email, req.body);
 
             const payload: ResponseDto<GTA5ProfileEntity> = {
                 message: SuccessMessages.gta5Profile,

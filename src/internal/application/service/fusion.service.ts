@@ -14,8 +14,8 @@ export class FusionService implements IFusionService {
     ) {
     }
 
-    async getOrCreate(personId: string): Promise<FusionLogEntity> {
-        return await this.createFusionUseCase.execute(personId)
+    async getOrCreate(actorEmail: string, personId: string): Promise<FusionLogEntity> {
+        return await this.createFusionUseCase.execute(actorEmail, personId)
     }
 
     async getHistory(query: PaginationQuery): Promise<ResponseListDto<FusionLogEntity[]>> {

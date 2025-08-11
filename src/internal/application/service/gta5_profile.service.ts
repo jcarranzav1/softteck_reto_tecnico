@@ -11,7 +11,7 @@ export class GTA5ProfileService implements IGTA5ProfileService {
     ) {
     }
 
-    async create(createDto: CreateGTA5ProfileDto): Promise<GTA5ProfileEntity> {
-        return await this.createGTA5ProfileUseCase.execute(createDto)
+    async create(actorEmail: string, createDto: CreateGTA5ProfileDto): Promise<GTA5ProfileEntity> {
+        return await this.createGTA5ProfileUseCase.execute(actorEmail, createDto)
     }
 }

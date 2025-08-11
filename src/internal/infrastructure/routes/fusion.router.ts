@@ -7,21 +7,21 @@ import { fusionQuerySchema } from "@application/dto/fusion/fusion_query.dto";
 import { paginationQuerySchema } from "@shared/interfaces/query/pagination.dto";
 import { authMiddleware } from '@shared/middleware/auth.middleware'
 
-const router = Router();
+const fusionRouter = Router();
 const controller = container.get<FusionController>(TYPES.FusionController);
 
-router.get(
+fusionRouter.get(
     "/fusionados",
     authMiddleware,
     zValidate({ query: fusionQuerySchema }),
     controller.fuseByPerson.bind(controller)
 );
 
-router.get(
+fusionRouter.get(
     "/historial",
     authMiddleware,
     zValidate({ query: paginationQuerySchema }),
     controller.history.bind(controller)
 );
 
-export default router;
+export default fusionRouter;

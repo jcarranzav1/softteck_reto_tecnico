@@ -5,5 +5,5 @@ import { FusionLogEntity } from '@domain/entity/fusion.entity'
 export interface IFusionService {
     getHistory(query: PaginationQuery): Promise<ResponseListDto<FusionLogEntity[]>>
 
-    getOrCreate(personId: string): Promise<FusionLogEntity>
+    getOrCreate(actorEmail: string, personId: string): Promise<FusionLogEntity>
 }

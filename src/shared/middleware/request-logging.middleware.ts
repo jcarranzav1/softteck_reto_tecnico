@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import { RequestHandler, Request,Response } from "express";
 
 const relevantHeaders = [
     'authorization',
@@ -11,15 +11,16 @@ const relevantHeaders = [
     'x-api-key',
 ]
 
-export const requestLoggingMiddleware: RequestHandler = (req, res, next) => {
+
+export const requestLoggingMiddleware: RequestHandler = (req: Request, res: Response, next) => {
     const { method, url, statusCode } = req
     const correlationId = req.headers['X-Correlation-ID'] as string
 
     const start = Date.now();
-    const isNotHealthCheck = url !== '/v1/health'
+    const isValidUrl = url !== '/health' &&  url !== '/docs'
     const curlCommand = buildCurlCommand(req)
 
-    if (isNotHealthCheck) {
+    if (isValidUrl) {
         console.log(`[${correlationId}] --> ${method} ${url} - Status: ${statusCode}`);
         console.log(`[${correlationId}] -->  Request CURL: ${curlCommand}`);
     }
@@ -29,10 +30,10 @@ export const requestLoggingMiddleware: RequestHandler = (req, res, next) => {
         const ms = Date.now() - start;
         const status = res.statusCode;
         if (status < 300) {
-            console.log(`[${correlationId}] --> ${method} ${url} - Status: ${statusCode} Successfully processed ✅`);
+            console.log(`[${correlationId}] --> ${method} ${url} - Status: ${statusCode} Successfully processed ✅ - ms: ${ms}ms`);
         }
         if (status >= 400) {
-            console.log(`Error: [${correlationId}] --> ${method} ${url} - Status: ${statusCode} ❌`);
+            console.log(`Error: [${correlationId}] --> ${method} ${url} - Status: ${statusCode} ❌ - ms: ${ms}ms`);
 
         }
     });

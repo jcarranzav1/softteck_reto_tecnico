@@ -5,9 +5,12 @@ import { correlationIdMiddleware } from '@shared/middleware/correlation_id.middl
 import { requestLoggingMiddleware } from '@shared/middleware/request-logging.middleware'
 import { globalErrorHandler } from '@shared/global_error/global_error'
 import router from "@infrastructure/routes";
+import cors from "cors";
 
 
 const app = express();
+app.use(cors());
+app.options("*", cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

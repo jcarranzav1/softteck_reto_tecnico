@@ -9,7 +9,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
         const [, token] = header.split(" ");
         if (!token) Unauthorized('Access token is required');
 
-        (req as any).user = jwt.verify(token, getEnv().JWT_SECRET);
+        req.user = jwt.verify(token, getEnv().JWT_SECRET);
         next();
     } catch {
         throw Unauthorized('Invalid access token');

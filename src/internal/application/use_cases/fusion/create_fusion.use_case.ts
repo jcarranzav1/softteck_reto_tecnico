@@ -18,7 +18,7 @@ export class GetOrCreateFusionUseCase {
     ) {
     }
 
-    async execute(personId: string): Promise<FusionLogEntity> {
+    async execute(actorEmail:string, personId: string): Promise<FusionLogEntity> {
         const cached = await this.fusionCache.get(personId);
         if (cached) return cached;
 
@@ -41,6 +41,7 @@ export class GetOrCreateFusionUseCase {
             planet: swPlanet,
             country: restCountry,
             person_id: personId,
+            created_by: actorEmail
         })
 
         await this.fusionRepository.create(newFusionLog)

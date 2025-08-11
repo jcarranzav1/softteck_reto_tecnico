@@ -5,19 +5,19 @@ import { zValidate } from "@shared/middleware/zod_validate.middleware";
 import { authSchema } from '@application/dto/auth/authentication.dto'
 import { AuthController } from '@infrastructure/controller/auth.controller'
 
-const router = Router();
+const authRouter = Router();
 const controller = container.get<AuthController>(TYPES.AuthController);
 
-router.post(
+authRouter.post(
     "/auth/signup",
     zValidate({ body: authSchema }),
     controller.signUp.bind(controller)
 );
 
-router.post(
+authRouter.post(
     "/auth/login",
     zValidate({ body: authSchema }),
     controller.login.bind(controller)
 );
 
-export default router;
+export default authRouter;

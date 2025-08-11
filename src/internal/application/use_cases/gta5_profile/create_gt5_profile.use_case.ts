@@ -11,9 +11,9 @@ export class CreateGTA5ProfileUseCase {
     ) {
     }
 
-    async execute(createDto: CreateGTA5ProfileDto): Promise<GTA5ProfileEntity> {
+    async execute(actorEmail: string, createDto: CreateGTA5ProfileDto): Promise<GTA5ProfileEntity> {
         const newProfile = GTA5ProfileEntity.create(createDto)
-        await this.gta5ProfileRepository.create(newProfile)
+        await this.gta5ProfileRepository.create({ ...newProfile, created_by: actorEmail })
 
         return await this.gta5ProfileRepository.getByProfileName(createDto.profile_name)
     }

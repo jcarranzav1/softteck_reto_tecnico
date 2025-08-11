@@ -6,10 +6,10 @@ import { createGTA5ProfileSchema } from '@application/dto/gta5_profile/create_gt
 import { GTA5ProfileController } from '@infrastructure/controller/gta5_profile.controller'
 import { authMiddleware } from '@shared/middleware/auth.middleware'
 
-const router = Router();
+const gta5Router = Router();
 const controller = container.get<GTA5ProfileController>(TYPES.GTA5ProfileController);
 
-router.post(
+gta5Router.post(
     "/almacenar",
     authMiddleware,
     zValidate({ body: createGTA5ProfileSchema }),
@@ -17,4 +17,4 @@ router.post(
 );
 
 
-export default router;
+export default gta5Router;
