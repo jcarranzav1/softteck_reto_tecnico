@@ -84,7 +84,7 @@ function handleHttp(err: any, req: Request, res: Response) {
         (req.headers["x-correlation-id"] as string)
     const status = err.status ?? 400;
     const generic = STATUS_MESSAGES[status] || STATUS_MESSAGES[500];
-    const errorCode = err.name || "HTTP_ERROR";
+    const errorCode = err.name || "INTERNAL_SERVER_ERROR";
     const errorMessage = err.message || generic;
 
     console.warn(`[${correlationId}] HttpError ${status}: ${errorMessage}`);
